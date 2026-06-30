@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin Business Dashboard | BBN</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0A0A0A;--card:#141414;--border:#1E1E1E;--text:#eee;--text2:#999;--text3:#666;--text4:#555;--heading:#ddd;--kpi-label:#777;--kpi-val:#fff;--axis:#666;--grid:#222;--tt-bg:#1a1a1a;--tt-border:#333;--tab-bg:#151515;--tab-text:#777;--input-bg:#0A0A0A;--input-border:#333;--info-bg:#111;--info-border:#1E1E1E;--legend:#ccc;--logo-bg:#F0F0F0;--logo-text:#2A2A2A;--shadow:rgba(0,0,0,0.5);--slider:#222;--private:#888;--scroll-track:#111;--scroll-thumb:#333}
+.light{--bg:#F5F5F5;--card:#FFFFFF;--border:#E0E0E0;--text:#111;--text2:#666;--text3:#999;--text4:#bbb;--heading:#222;--kpi-label:#666;--kpi-val:#111;--axis:#999;--grid:#f7f7f7;--tt-bg:#fff;--tt-border:#ddd;--tab-bg:#E8E8E8;--tab-text:#888;--input-bg:#F5F5F5;--input-border:#ccc;--info-bg:#F0F0F0;--info-border:#E0E0E0;--legend:#333;--logo-bg:#2A2A2A;--logo-text:#fff;--shadow:rgba(0,0,0,0.12);--slider:#ddd;--private:#999;--scroll-track:#eee;--scroll-thumb:#ccc}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);transition:background 0.3s,color 0.3s}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--scroll-track)}::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:3px}
+.page{padding:24px 28px;min-height:100vh}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+.header-left{display:flex;align-items:center;gap:14px}
+.header-title{font-size:22px;font-weight:700;letter-spacing:-0.5px}
+.header-sub{font-size:13px;color:var(--text3);margin-top:2px}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tabs{display:flex;gap:4px;background:var(--tab-bg);border-radius:10px;padding:3px;flex-wrap:wrap}
+.tab{padding:8px 16px;border:none;background:transparent;color:var(--tab-text);font-size:12px;font-weight:500;font-family:'Inter',sans-serif;border-radius:8px;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.tab.active{background:#E8611A;color:#fff;font-weight:700}
+.theme-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text);transition:all 0.2s;flex-shrink:0}
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:12px}
+@media(max-width:768px){.card-grid{grid-template-columns:repeat(2,1fr)}.tabs{flex-wrap:wrap}.holdings-big .val{font-size:40px}}
+@media(max-width:480px){.card-grid{grid-template-columns:1fr}.header{flex-direction:column;align-items:flex-start}.freq-row{flex-wrap:wrap}.page{padding:16px 14px}.header-title{font-size:18px}.card-val{font-size:26px}.chart-card{padding:16px 14px}.holdings-big{padding:18px 14px}.holdings-big .val{font-size:28px}.holdings-big .label{font-size:11px;letter-spacing:0.5px}.holdings-big .sub{font-size:11px}.result-val{font-size:24px}.tabs{width:100%}.tab{padding:7px 12px;font-size:11px}.chart-header{flex-direction:column;align-items:flex-start}.slider-row{flex-wrap:wrap;gap:4px}.info-box{font-size:11px;padding:12px 14px}.disclaimer{font-size:10px;padding:12px 14px}.chart-wrap{height:220px!important}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px 20px;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;transition:background 0.3s,border-color 0.3s}
+.card-label{font-size:11px;color:var(--kpi-label);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;line-height:1.4}
+.card-val{font-size:32px;font-weight:700;color:var(--kpi-val)}
+.card-change{font-size:12px;margin-top:6px;font-weight:500}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 24px;transition:background 0.3s,border-color 0.3s}
+.chart-title{font-size:15px;font-weight:700;color:var(--heading)}
+.chart-badge{background:rgba(232,97,26,0.15);color:#E8611A;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;display:inline-block}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.source-tag{font-size:10px;color:var(--text4);text-align:center;padding:8px 0}
+.holdings-big{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px 28px;text-align:center;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;transition:background 0.3s,border-color 0.3s}
+.holdings-big .label{font-size:13px;color:var(--text2);letter-spacing:1px;text-transform:uppercase}
+.holdings-big .val{font-size:56px;font-weight:700;line-height:1.1;margin-top:8px}
+.holdings-big .sub{font-size:13px;color:var(--text3);margin-top:4px}
+.sector-legend{display:flex;flex-direction:column;gap:6px;flex:1;min-width:220px}
+.sector-item{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:6px;cursor:pointer;transition:opacity 0.2s}
+.sector-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.sector-name{color:var(--legend);font-size:13px}
+.sector-pct{color:#E8611A;font-weight:700;font-size:13px;margin-left:auto}
+.result-card{background:var(--input-bg);border:1px solid var(--border);border-radius:12px;padding:22px 20px;text-align:center}
+.result-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px}
+.result-val{font-size:32px;font-weight:700;line-height:1.2}
+.result-change{font-size:14px;font-weight:600;margin-top:4px}
+.result-sub{font-size:11px;color:var(--text3);margin-top:6px}
+.slider-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px}
+.slider-row{display:flex;justify-content:space-between;align-items:baseline}
+.slider-range{display:flex;justify-content:space-between;font-size:10px;color:var(--text4);margin-top:4px}
+input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:6px;background:var(--slider);border-radius:3px;outline:none;margin-top:10px}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:#E8611A;cursor:pointer;border:2px solid var(--kpi-val);box-shadow:0 2px 8px var(--shadow)}
+input[type="range"]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#E8611A;cursor:pointer;border:2px solid var(--kpi-val)}
+.freq-row{display:flex;gap:6px}
+.freq-btn{flex:1;padding:10px 8px;border:1px solid var(--input-border);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border-radius:8px;transition:all 0.2s;background:var(--input-bg);color:var(--tab-text)}
+.freq-btn.active{background:#E8611A;border-color:#E8611A;color:#fff}
+.curr-btn{padding:8px 18px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;background:transparent;color:var(--tab-text)}
+.curr-btn.active{background:#E8611A;color:#fff}
+.info-box{margin-top:20px;padding:14px 18px;background:var(--info-bg);border-radius:10px;border:1px solid var(--info-border);color:var(--text2);font-size:12px;line-height:1.6}
+.info-box strong{color:var(--heading)}
+.disclaimer{margin-top:32px;padding:16px 20px;font-size:11px;line-height:1.7;color:var(--text4);border-top:1px solid var(--border);text-align:center}
+.tab-content{display:none}.tab-content.active{display:block}
+.chart-wrap{position:relative;width:100%;max-width:100%}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp 0.5s ease both}
+</style>
+</head>
+<body>
+<div class="page" id="page">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <svg id="logo" width="36" height="36" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="var(--logo-bg)"/><text x="50" y="62" text-anchor="middle" font-family="Inter" font-weight="900" font-size="38" fill="var(--logo-text)" letter-spacing="-2">bbn</text></svg>
+      <div><div class="header-title">Bitcoin Business Dashboard</div><div class="header-sub">Last updated end June 2026</div></div>
+    </div>
+    <div class="header-right">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('uk')">UK Adoption</button>
+        <button class="tab" onclick="switchTab('bbn')">BBN Adoption</button>
+        <button class="tab" onclick="switchTab('holdings')">Global Holdings</button>
+        <button class="tab" onclick="switchTab('strategy')">Strategy Builder</button>
+      </div>
+      <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme" id="themeBtn">☀️</button>
+    </div>
+  </div>
+
+  <!-- UK Adoption -->
+  <div class="tab-content active" id="tab-uk">
+    <div class="card-grid" style="margin-bottom:24px" id="kpiGrid"></div>
+    <div class="chart-card fade-up">
+      <div class="chart-header"><div class="chart-title">Merchant Adoption (UK)</div><div class="chart-badge">+116% since Jan 2023</div></div>
+      <div class="chart-wrap"><canvas id="merchantChart" height="260"></canvas></div>
+    </div>
+    <div class="source-tag">Source: BBN internal data, BitcoinTreasuries.net, btcmap.org</div>
+  </div>
+
+  <!-- BBN Adoption -->
+  <div class="tab-content" id="tab-bbn">
+    <div class="chart-card fade-up">
+      <div class="chart-title" style="margin-bottom:16px">Bitcoin Business Network Sectors</div>
+      <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+        <div style="width:100%;max-width:320px;aspect-ratio:1"><canvas id="sectorChart"></canvas></div>
+        <div class="sector-legend" id="sectorLegend"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Holdings -->
+  <div class="tab-content" id="tab-holdings">
+    <div style="display:grid;gap:16px">
+      <div class="chart-card fade-up">
+        <div class="chart-title" style="margin-bottom:16px">Corporate Bitcoin Holdings Over Time (Globally, Millions)</div>
+        <div class="chart-wrap" style="height:280px"><canvas id="holdingsChart"></canvas></div>
+      </div>
+      <div class="card-grid" id="holdingsCards"></div>
+    </div>
+  </div>
+
+  <!-- Strategy Builder -->
+  <div class="tab-content" id="tab-strategy">
+    <div class="chart-card fade-up">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div><div class="chart-title">Lump Sum vs Dollar Cost Averaging</div><div style="color:var(--text2);font-size:13px;margin-top:4px">Compare investing a lump sum on day one against spreading the same amount over time.</div></div>
+        <div style="display:flex;background:var(--input-bg);border-radius:8px;border:1px solid var(--input-border);overflow:hidden">
+          <button class="curr-btn active" onclick="setCurrency('GBP')" id="btnGBP">£ GBP</button>
+          <button class="curr-btn" onclick="setCurrency('USD')" id="btnUSD">$ USD</button>
+        </div>
+      </div>
+      <div style="margin-top:28px;display:flex;flex-direction:column;gap:24px">
+        <div>
+          <div class="slider-row"><label class="slider-label">Total Investment</label><span id="amountDisplay" style="color:#E8611A;font-weight:700;font-size:20px">£10,000</span></div>
+          <input type="range" min="500" max="100000" step="500" value="10000" id="amountSlider" oninput="updateDCA()">
+          <div class="slider-range"><span id="amountMin">£500</span><span id="amountMax">£100,000</span></div>
+        </div>
+        <div>
+          <div class="slider-row"><label class="slider-label">Start Date</label><span id="startDisplay" style="color:var(--kpi-val);font-weight:600;font-size:14px"></span></div>
+          <input type="range" min="0" max="76" step="1" value="24" id="startSlider" oninput="updateDCA()">
+          <div class="slider-range"><span>Jan 2020</span><span>May 2026</span></div>
+        </div>
+        <div>
+          <div class="slider-row"><label class="slider-label">End Date</label><span id="endDisplay" style="color:var(--kpi-val);font-weight:600;font-size:14px"></span></div>
+          <input type="range" min="1" max="77" step="1" value="77" id="endSlider" oninput="updateDCA()">
+          <div class="slider-range"><span>Feb 2020</span><span>Jun 2026</span></div>
+        </div>
+        <div>
+          <label class="slider-label" style="display:block;margin-bottom:6px">DCA Frequency</label>
+          <div class="freq-row">
+            <button class="freq-btn" onclick="setFreq('daily')">Daily</button>
+            <button class="freq-btn" onclick="setFreq('weekly')">Weekly</button>
+            <button class="freq-btn" onclick="setFreq('biweekly')">Fortnightly</button>
+            <button class="freq-btn active" onclick="setFreq('monthly')">Monthly</button>
+          </div>
+        </div>
+      </div>
+      <div id="dcaResults"></div>
+      <div class="chart-wrap" style="margin-top:8px"><canvas id="dcaChart" height="320"></canvas></div>
+      <div class="info-box" id="dcaInfo"></div>
+    </div>
+  </div>
+
+  <div class="disclaimer">This dashboard is provided for illustrative and educational purposes only and should not be relied upon as tax, financial, or investment advice. All data is sourced from third parties, based on historical figures, and may not be 100% accurate. Past performance is not indicative of future results and all returns shown are purely hypothetical. Do not use this dashboard as the basis for any investment decisions. The Bitcoin Collective makes no representations regarding the tax consequences or investment suitability of any strategy described herein. All such questions should be directed to a qualified financial adviser.</div>
+</div>
+
+<script>
+// === DATA ===
+const merchantData={labels:["Jan 23","Feb 23","Mar 23","Apr 23","May 23","Jun 23","Jul 23","Aug 23","Sep 23","Oct 23","Nov 23","Dec 23","Jan 24","Feb 24","Mar 24","Apr 24","May 24","Jun 24","Jul 24","Aug 24","Sep 24","Oct 24","Nov 24","Dec 24","Jan 25","Feb 25","Mar 25","Apr 25","May 25","Jun 25","Jul 25","Aug 25","Sep 25","Oct 25","Nov 25","Dec 25","Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26"],values:[170,172,175,178,181,182,185,187,190,191,195,198,201,206,214,220,233,237,253,261,270,279,289,291,299,299,300,311,321,327,333,346,340,338,347,347,347,348,353,364,370,367]};
+
+const holdingsMonths=["Mar 18","Apr 18","May 18","Jun 18","Jul 18","Aug 18","Sep 18","Oct 18","Nov 18","Dec 18","Jan 19","Feb 19","Mar 19","Apr 19","May 19","Jun 19","Jul 19","Aug 19","Sep 19","Oct 19","Nov 19","Dec 19","Jan 20","Feb 20","Mar 20","Apr 20","May 20","Jun 20","Jul 20","Aug 20","Sep 20","Oct 20","Nov 20","Dec 20","Jan 21","Feb 21","Mar 21","Apr 21","May 21","Jun 21","Jul 21","Aug 21","Sep 21","Oct 21","Nov 21","Dec 21","Jan 22","Feb 22","Mar 22","Apr 22","May 22","Jun 22","Jul 22","Aug 22","Sep 22","Oct 22","Nov 22","Dec 22","Jan 23","Feb 23","Mar 23","Apr 23","May 23","Jun 23","Jul 23","Aug 23","Sep 23","Oct 23","Nov 23","Dec 23","Jan 24","Feb 24","Mar 24","Apr 24","May 24","Jun 24","Jul 24","Aug 24","Sep 24","Oct 24","Nov 24","Dec 24","Jan 25","Feb 25","Mar 25","Apr 25","May 25","Jun 25","Jul 25","Aug 25","Sep 25","Oct 25","Nov 25","Dec 25","Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26"];
+const holdingsPublic=[0,0,0,0,0,0,0,0.0058,0.0058,0.0012,0,0,0,0,0,0.0023,0.0058,0.0058,0.0058,0.0058,0.0058,0.0058,0.0058,0.0058,0.0058,0.0058,0.0058,0.0058,0.0058,0.0233,0.0408,0.0408,0.0408,0.0769,0.0851,0.1504,0.1515,0.1515,0.1515,0.169,0.169,0.1748,0.1807,0.1807,0.1865,0.204,0.2156,0.2156,0.2203,0.2273,0.2273,0.2191,0.1923,0.1923,0.1982,0.1982,0.1982,0.1982,0.1982,0.1982,0.2052,0.2087,0.2098,0.2168,0.2215,0.2215,0.2273,0.2273,0.239,0.2658,0.2716,0.2798,0.3031,0.3031,0.3042,0.3194,0.3264,0.3345,0.3614,0.3649,0.5176,0.5957,0.6271,0.6609,0.6912,0.7355,0.788,0.8416,0.9209,0.9873,1.0363,1.0526,1.0724,1.0957,1.1365,1.1366,1.1602,1.2176,1.239,1.2647];
+const holdingsPrivate=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.0117,0.0117,0.0128,0.028,0.0408,0.0385,0.0396,0.0408,0.0385,0.0408,0.035,0.0385,0.0408,0.0385,0.0385,0.035,0.0396,0.0373,0.0385,0.0408,0.0408,0.0408,0.0408,0.2436,0.2564,0.2564,0.2588,0.2506,0.2506,0.2588,0.2634,0.2623,0.2646,0.2623,0.2623,0.2646,0.2681,0.2693,0.2739,0.2763,0.2763,0.2774,0.2821,0.2844,0.2833,0.2798,0.2798,0.2681,0.2751,0.2751,0.2763,0.2763,0.2751,0.2833,0.2972,0.2926,0.2763,0.2821,0.2786,0.2809,0.2856,0.2798,0.2856,0.2914,0.288,0.288,0.2893,0.3005,0.2818];
+
+const sectors=[{n:"Financial Services",v:20.3},{n:"Payments & Bitcoin",v:13.5},{n:"Food, Bev & Hospitality",v:12.2},{n:"Education & Training",v:12.2},{n:"Technology & AI",v:8.1},{n:"People & Talent",v:6.8},{n:"Health & Medical",v:6.8},{n:"Construction & Property",v:5.4},{n:"Marketing & Design",v:5.4},{n:"Not for Profit",v:4.1},{n:"Legal",v:2.7},{n:"Energy",v:1.4},{n:"Retail & Fashion",v:1.4}];
+const sectorColors=["#E8611A","#D4520F","#BF4A0D","#A63F0B","#8C350A","#733008","#C97A4A","#A8754F","#8B6E55","#6E655A","#555555","#444444","#383838"];
+
+const kpis=[{l:"Total Corporate Bitcoin Held (UK)",v:"4,228",c:"-90",pos:false},{l:"Total Corporate Bitcoin Value (UK)",v:"£192M",c:"-£42M",pos:false},{l:"Public Cos (UK)",v:"14",c:"no change",neu:true},{l:"Publicly Disclosed Private Cos (UK)",v:"5",c:"no change",neu:true},{l:"Merchants Accepting (UK)",v:"367",c:"-3",pos:false},{l:"Merchants Accepting (Global)",v:"26,076",c:"+393",pos:true}];
+
+const holdingsKpis=[{l:"Public Holdings (Global)",v:"1.26M",c:"#E8611A",s:"BTC held by public companies"},{l:"Private Holdings (Global)",v:"0.28M",c:"var(--text2)",s:"BTC held by known private companies"},{l:"UK's Global Share (Public)",v:"0.33%",c:"#E8611A",s:"4,228 of 1.26M BTC held globally"},{l:"UK's Global Share (Private)",v:"—",c:"var(--text2)",s:"UK private holdings data TBC"}];
+
+const BTC_M={"2020-01":7200,"2020-02":9393,"2020-03":8562,"2020-04":6607,"2020-05":8865,"2020-06":10167,"2020-07":9228,"2020-08":11760,"2020-09":11970,"2020-10":10619,"2020-11":13737,"2020-12":18803,"2021-01":29374,"2021-02":33537,"2021-03":49631,"2021-04":59096,"2021-05":57828,"2021-06":36685,"2021-07":33572,"2021-08":39975,"2021-09":48847,"2021-10":48117,"2021-11":61004,"2021-12":57230,"2022-01":47687,"2022-02":38743,"2022-03":44355,"2022-04":46282,"2022-05":38469,"2022-06":29799,"2022-07":19269,"2022-08":23314,"2022-09":20127,"2022-10":19312,"2022-11":20485,"2022-12":16967,"2023-01":16625,"2023-02":23724,"2023-03":23647,"2023-04":28411,"2023-05":28092,"2023-06":26820,"2023-07":30590,"2023-08":29676,"2023-09":25801,"2023-10":27984,"2023-11":35437,"2023-12":38689,"2024-01":44167,"2024-02":43076,"2024-03":62441,"2024-04":69702,"2024-05":58254,"2024-06":67707,"2024-07":62852,"2024-08":65358,"2024-09":57325,"2024-10":60837,"2024-11":69482,"2024-12":97280,"2025-01":94420,"2025-02":100656,"2025-03":86032,"2025-04":85169,"2025-05":96492,"2025-06":105652,"2025-07":105698,"2025-08":113320,"2025-09":109251,"2025-10":118649,"2025-11":110064,"2025-12":86322,"2026-01":88732,"2026-02":76974,"2026-03":65738,"2026-04":68079,"2026-05":78179,"2026-06":71320};
+const GBP_R={"2020-01":1.31,"2020-02":1.30,"2020-03":1.15,"2020-04":1.24,"2020-05":1.23,"2020-06":1.24,"2020-07":1.27,"2020-08":1.31,"2020-09":1.29,"2020-10":1.29,"2020-11":1.32,"2020-12":1.36,"2021-01":1.37,"2021-02":1.39,"2021-03":1.38,"2021-04":1.39,"2021-05":1.41,"2021-06":1.41,"2021-07":1.38,"2021-08":1.38,"2021-09":1.37,"2021-10":1.37,"2021-11":1.35,"2021-12":1.33,"2022-01":1.35,"2022-02":1.35,"2022-03":1.31,"2022-04":1.30,"2022-05":1.26,"2022-06":1.25,"2022-07":1.20,"2022-08":1.21,"2022-09":1.12,"2022-10":1.13,"2022-11":1.18,"2022-12":1.21,"2023-01":1.22,"2023-02":1.21,"2023-03":1.21,"2023-04":1.25,"2023-05":1.25,"2023-06":1.27,"2023-07":1.28,"2023-08":1.27,"2023-09":1.24,"2023-10":1.22,"2023-11":1.24,"2023-12":1.27,"2024-01":1.27,"2024-02":1.26,"2024-03":1.27,"2024-04":1.25,"2024-05":1.27,"2024-06":1.27,"2024-07":1.28,"2024-08":1.28,"2024-09":1.31,"2024-10":1.30,"2024-11":1.27,"2024-12":1.26,"2025-01":1.235,"2025-02":1.252,"2025-03":1.289,"2025-04":1.313,"2025-05":1.336,"2025-06":1.356,"2025-07":1.351,"2025-08":1.345,"2025-09":1.350,"2025-10":1.337,"2025-11":1.314,"2025-12":1.339,"2026-01":1.35,"2026-02":1.38,"2026-03":1.34,"2026-04":1.33,"2026-05":1.34,"2026-06":1.32};
+const allMonths=Object.keys(BTC_M).sort().map(k=>k+"-01");
+
+// === STATE ===
+let isDark=true,currency="GBP",freq="monthly",charts={};
+
+// === HELPERS ===
+function getPrice(d){const k=d.slice(0,7);if(BTC_M[k])return BTC_M[k];const ks=Object.keys(BTC_M).sort();let b=ks[0],a=ks[ks.length-1];for(const x of ks){if(x<=k)b=x;if(x>=k&&x<a)a=x;}const t=(new Date(k+"-01")-new Date(b+"-01"))/(new Date(a+"-01")-new Date(b+"-01")||1);return BTC_M[b]+(BTC_M[a]-BTC_M[b])*t;}
+function getRate(d){const k=d.slice(0,7);return GBP_R[k]||1.32;}
+function toL(usd,d){return currency==="GBP"?usd/getRate(d):usd;}
+function sym(){return currency==="GBP"?"£":"$";}
+function fmt(n){return n.toLocaleString(undefined,{maximumFractionDigits:0});}
+function getMaxTicks(){return window.innerWidth<480?4:window.innerWidth<768?6:8;}
+function getChartColors(){return{grid:getComputedStyle(document.documentElement).getPropertyValue('--grid').trim(),axis:getComputedStyle(document.documentElement).getPropertyValue('--axis').trim(),text2:getComputedStyle(document.documentElement).getPropertyValue('--text2').trim()};}
+
+// === TABS ===
+function switchTab(id){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+  setTimeout(()=>{if(id==='uk')renderMerchantChart();if(id==='bbn')renderSectorChart();if(id==='holdings')renderHoldingsChart();if(id==='strategy')updateDCA();},50);
+}
+
+// === THEME ===
+function toggleTheme(){
+  isDark=!isDark;
+  document.body.classList.toggle('light',!isDark);
+  document.getElementById('themeBtn').textContent=isDark?'☀️':'🌙';
+  const active=document.querySelector('.tab-content.active')?.id;
+  if(active==='tab-uk')renderMerchantChart();
+  if(active==='tab-holdings')renderHoldingsChart();
+  if(active==='tab-strategy')updateDCA();
+}
+
+// === KPI CARDS ===
+function renderKPIs(){
+  const g=document.getElementById('kpiGrid');
+  g.innerHTML=kpis.map(k=>`<div style="height:100%"><div class="card"><div class="card-label">${k.l}</div><div class="card-val">${k.v}</div><div class="card-change" style="color:${k.neu?'#888':k.pos?'#4ade80':'#ef4444'}">(${k.c})</div></div></div>`).join('');
+}
+
+// === HOLDINGS CARDS ===
+function renderHoldingsCards(){
+  const g=document.getElementById('holdingsCards');
+  g.innerHTML=holdingsKpis.map(h=>`<div class="holdings-big"><div class="label">${h.l}</div><div class="val" style="color:${h.c}">${h.v}</div><div class="sub">${h.s}</div></div>`).join('');
+}
+
+// === SECTOR LEGEND ===
+function renderSectorLegend(){
+  const g=document.getElementById('sectorLegend');
+  g.innerHTML=sectors.map((s,i)=>`<div class="sector-item"><div class="sector-dot" style="background:${sectorColors[i]}"></div><span class="sector-name">${s.n}</span><span class="sector-pct">${s.v}%</span></div>`).join('');
+}
+
+// === CHARTS ===
+function renderMerchantChart(){
+  if(charts.merchant)charts.merchant.destroy();
+  const col=getChartColors();
+  const ctx=document.getElementById('merchantChart');
+  const maxTicks=getMaxTicks();
+  charts.merchant=new Chart(ctx,{type:'line',data:{labels:merchantData.labels,datasets:[{data:merchantData.values,borderColor:'#E8611A',backgroundColor:'rgba(232,97,26,0.15)',fill:true,tension:0.3,pointRadius:0,pointHitRadius:10,borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1a1a',borderColor:'#333',borderWidth:1,titleColor:'#999',bodyColor:'#E8611A',bodyFont:{weight:700},callbacks:{label:c=>'Merchants: '+c.parsed.y}}},scales:{x:{grid:{display:false},ticks:{color:col.axis,font:{size:11},maxTicksLimit:maxTicks,maxRotation:0},border:{color:col.grid}},y:{min:150,max:400,grid:{color:col.grid},ticks:{color:col.axis,font:{size:11}},border:{display:false}}}}});
+}
+
+function renderSectorChart(){
+  if(charts.sector)charts.sector.destroy();
+  const ctx=document.getElementById('sectorChart');
+  charts.sector=new Chart(ctx,{type:'doughnut',data:{labels:sectors.map(s=>s.n),datasets:[{data:sectors.map(s=>s.v),backgroundColor:sectorColors,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:true,cutout:'45%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1a1a',borderColor:'#333',borderWidth:1,bodyColor:'#E8611A',bodyFont:{weight:700},callbacks:{label:c=>c.label+': '+c.parsed+'%'}}}}});
+}
+
+function renderHoldingsChart(){
+  if(charts.holdings)charts.holdings.destroy();
+  const col=getChartColors();
+  const maxTicks=getMaxTicks();
+  const ctx=document.getElementById('holdingsChart');
+  charts.holdings=new Chart(ctx,{type:'line',data:{labels:holdingsMonths,datasets:[{label:'Known Private',data:holdingsPrivate,borderColor:isDark?'#888':'#999',backgroundColor:isDark?'rgba(136,136,136,0.3)':'rgba(153,153,153,0.2)',fill:'origin',tension:0.1,pointRadius:0,pointHitRadius:10,borderWidth:2,order:2},{label:'Public Companies',data:holdingsPublic,borderColor:'#E8611A',backgroundColor:'rgba(232,97,26,0.35)',fill:'origin',tension:0.1,pointRadius:0,pointHitRadius:10,borderWidth:2.5,order:1}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:col.axis,font:{size:window.innerWidth<480?10:11},boxWidth:12,padding:8},position:'top',align:'end'},tooltip:{backgroundColor:'#1a1a1a',borderColor:'#333',borderWidth:1,titleColor:'#999',bodyFont:{weight:600}}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:col.axis,font:{size:12},maxTicksLimit:maxTicks,maxRotation:0},border:{color:col.grid}},y:{stacked:true,min:0,max:1.8,grid:{color:col.grid},ticks:{color:col.axis,font:{size:12}},border:{display:false}}}}});
+}
+
+// === DCA CALCULATOR ===
+function setCurrency(c){currency=c;document.getElementById('btnGBP').classList.toggle('active',c==='GBP');document.getElementById('btnUSD').classList.toggle('active',c==='USD');updateDCA();}
+function setFreq(f){freq=f;document.querySelectorAll('.freq-btn').forEach(b=>{b.classList.toggle('active',b.textContent.toLowerCase().includes(f==='biweekly'?'fortnight':f))});updateDCA();}
+
+function updateDCA(){
+  const amount=+document.getElementById('amountSlider').value;
+  let si=+document.getElementById('startSlider').value;
+  let ei=+document.getElementById('endSlider').value;
+  if(ei<=si)ei=si+1;
+  const s=sym();
+  document.getElementById('amountDisplay').textContent=s+fmt(amount);
+  document.getElementById('amountMin').textContent=s+'500';
+  document.getElementById('amountMax').textContent=s+'100,000';
+  const startDate=allMonths[Math.min(si,allMonths.length-2)]||allMonths[0];
+  const endDate=allMonths[Math.min(ei,allMonths.length-1)]||allMonths[allMonths.length-1];
+  document.getElementById('startDisplay').textContent=new Date(startDate).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  document.getElementById('endDisplay').textContent=new Date(endDate).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+
+  let intDays={daily:1,weekly:7,biweekly:14,monthly:30.44}[freq]||30.44;
+  const totalDays=Math.round((new Date(endDate)-new Date(startDate))/86400000);
+  if(totalDays<=0)return;
+  const n=Math.max(1,Math.floor(totalDays/intDays));
+  const per=amount/n;
+  const endP=toL(getPrice(endDate),endDate);
+  const lumpP=toL(getPrice(startDate),startDate);
+  const lumpBtc=amount/lumpP;
+  let dcaBtc=0,labels=[],invested=[],lumpVals=[],dcaVals=[],ir=0;
+  const start=new Date(startDate);
+  for(let i=0;i<n;i++){
+    const off=Math.round(i*intDays);const d=new Date(start);d.setDate(d.getDate()+off);
+    const ds=d.toISOString().slice(0,10);const p=toL(getPrice(ds),ds);
+    dcaBtc+=per/p;ir+=per;
+    if(i%Math.max(1,Math.floor(n/60))===0||i===n-1){labels.push(d.toLocaleDateString('en-GB',{month:'short',year:'2-digit'}));invested.push(Math.round(ir));lumpVals.push(Math.round(lumpBtc*p));dcaVals.push(Math.round(dcaBtc*p));}
+  }
+  const dv=dcaBtc*endP,lv=lumpBtc*endP;
+  const lr=((lv-amount)/amount)*100,dr=((dv-amount)/amount)*100;
+  const months=Math.round(totalDays/30.44);
+  const winner=lr>dr?'Lump Sum':'DCA';
+  const diff=Math.abs(lv-dv);
+
+  document.getElementById('dcaResults').innerHTML=`<div class="card-grid" style="margin-top:32px;margin-bottom:28px">
+    <div class="result-card"><div class="result-label">Lump Sum Value</div><div class="result-val" style="color:${lr>=0?'#4ade80':'#ef4444'}">${s}${fmt(lv)}</div><div class="result-change" style="color:${lr>=0?'#4ade80':'#ef4444'}">${lr>=0?'+':''}${lr.toFixed(1)}%</div><div class="result-sub">${lumpBtc.toFixed(4)} BTC @ ${s}${fmt(lumpP)}</div></div>
+    <div class="result-card"><div class="result-label">DCA Value</div><div class="result-val" style="color:${dr>=0?'#4ade80':'#ef4444'}">${s}${fmt(dv)}</div><div class="result-change" style="color:${dr>=0?'#4ade80':'#ef4444'}">${dr>=0?'+':''}${dr.toFixed(1)}%</div><div class="result-sub">${dcaBtc.toFixed(4)} BTC @ avg ${s}${fmt(amount/dcaBtc)}</div></div>
+    <div class="result-card"><div class="result-label">${winner} Wins</div><div class="result-val" style="color:#E8611A">+${s}${fmt(diff)}</div><div class="result-change" style="color:#E8611A">${Math.abs(lr-dr).toFixed(1)}% difference</div><div class="result-sub">${n} purchases over ${months} months</div></div>
+  </div>`;
+
+  document.getElementById('dcaInfo').innerHTML=`<strong>How to read this:</strong> The orange line shows the value of investing ${s}${fmt(amount)} as a lump sum on ${new Date(startDate).toLocaleDateString('en-GB',{month:'long',year:'numeric'})}. The green line shows the value of spreading that same ${s}${fmt(amount)} across ${n} equal ${freq} purchases. The dashed line is your total invested over time. Historical BTC prices sourced from CoinGecko. ${currency==='GBP'?'GBP values use historical exchange rates. ':''}This is for education only, not financial advice.`;
+
+  if(charts.dca)charts.dca.destroy();
+  const col=getChartColors();
+  charts.dca=new Chart(document.getElementById('dcaChart'),{type:'line',data:{labels:labels,datasets:[
+    {label:'Invested',data:invested,borderColor:isDark?'#555':'#bbb',borderDash:[4,4],borderWidth:1.5,pointRadius:0,fill:false},
+    {label:'Lump Sum',data:lumpVals,borderColor:'#E8611A',backgroundColor:'rgba(232,97,26,0.15)',borderWidth:2.5,pointRadius:0,fill:true,tension:0.2},
+    {label:'DCA',data:dcaVals,borderColor:'#4ade80',backgroundColor:'rgba(74,222,128,0.15)',borderWidth:2.5,pointRadius:0,fill:true,tension:0.2}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:col.axis,font:{size:11}},position:'top'},tooltip:{backgroundColor:'#1a1a1a',borderColor:'#333',borderWidth:1,titleColor:'#999',bodyFont:{weight:600},callbacks:{label:c=>c.dataset.label+': '+s+fmt(c.parsed.y)}}},scales:{x:{grid:{display:false},ticks:{color:col.axis,font:{size:11},maxTicksLimit:4,maxRotation:0},border:{color:col.grid}},y:{grid:{color:col.grid},ticks:{color:col.axis,font:{size:11},callback:v=>s+(v/1000).toFixed(0)+'k'},border:{display:false}}}}});
+}
+
+// === INIT ===
+renderKPIs();
+renderHoldingsCards();
+renderSectorLegend();
+renderMerchantChart();
+updateDCA();
+</script>
+</body>
+</html>
