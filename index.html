@@ -324,15 +324,15 @@ updateDCA();
 (function(){
   function getHeight(){
     var page = document.getElementById('page');
-    return Math.max(
-      page ? page.scrollHeight : 0,
-      document.body.scrollHeight,
-      document.documentElement.scrollHeight
-    );
+    return Math.ceil(page.getBoundingClientRect().height);
   }
+  var lastHeight = 0;
   function sendHeight(){
     if (window.parent === window) return;
-    window.parent.postMessage({ type: "bbn-resize", height: getHeight() }, "*");
+    var h = getHeight();
+    if (Math.abs(h - lastHeight) < 2) return;
+    lastHeight = h;
+    window.parent.postMessage({ type: "bbn-resize", height: h }, "*");
   }
   window.addEventListener("message", function(event){
     if (event.data && event.data.type === "bbn-request-height") sendHeight();
