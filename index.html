@@ -193,8 +193,7 @@ function toL(usd,d){return currency==="GBP"?usd/getRate(d):usd;}
 function sym(){return currency==="GBP"?"£":"$";}
 function fmt(n){return n.toLocaleString(undefined,{maximumFractionDigits:0});}
 function getMaxTicks(){return window.innerWidth<480?4:window.innerWidth<768?6:8;}
-function getChartColors(){return{grid:getComputedStyle(document.documentElement).getPropertyValue('--grid').trim(),axis:getComputedStyle(document.documentElement).getPropertyValue('--axis').trim(),text2:getComputedStyle(document.documentElement).getPropertyValue('--text2').trim()};}
-
+function getChartColors(){return{grid:getComputedStyle(document.body).getPropertyValue('--grid').trim(),axis:getComputedStyle(document.body).getPropertyValue('--axis').trim(),text2:getComputedStyle(document.body).getPropertyValue('--text2').trim()};}
 // === TABS ===
 function switchTab(id){
   document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
