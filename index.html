@@ -320,5 +320,32 @@ renderSectorLegend();
 renderMerchantChart();
 updateDCA();
 </script>
+  <script>
+(function(){
+  function getHeight(){
+    var page = document.getElementById('page');
+    return Math.max(
+      page ? page.scrollHeight : 0,
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight
+    );
+  }
+  function sendHeight(){
+    if (window.parent === window) return;
+    window.parent.postMessage({ type: "bbn-resize", height: getHeight() }, "*");
+  }
+  window.addEventListener("message", function(event){
+    if (event.data && event.data.type === "bbn-request-height") sendHeight();
+  });
+  var ro = new ResizeObserver(sendHeight);
+  ro.observe(document.body);
+  window.addEventListener("load", sendHeight);
+  window.addEventListener("resize", sendHeight);
+  sendHeight();
+  setTimeout(sendHeight, 300);
+  setTimeout(sendHeight, 1000);
+  setTimeout(sendHeight, 2000);
+})();
+</script>
 </body>
 </html>
